@@ -159,6 +159,17 @@
         .history-item .time {
             color: #bdc3c7;
             font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .history-item .ip-info {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
         }
     </style>
 </head>
@@ -231,7 +242,10 @@
                                 <strong>谷歌:</strong> <a href="${item.urlC}" target="_blank" style="color: #7f8c8d;">${item.urlC}</a><br>
                                 <strong>其他:</strong> <a href="${item.urlA}" target="_blank" style="color: #7f8c8d;">${item.urlA}</a>
                             </div>
-                            <div class="time">创建时间: ${date}</div>
+                            <div class="time">
+                                <span>创建时间: ${date}</span>
+                                ${item.ip_location ? `<span class="ip-info" title="${item.ip_address || ''}">📍 ${item.ip_location}</span>` : ''}
+                            </div>
                         </li>
                     `;
                 }).join('');
