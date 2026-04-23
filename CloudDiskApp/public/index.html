@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HJS 极简云盘</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        /* 拖拽上传区域样式 */
+        .drop-zone {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f1f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        .drop-zone.dragover {
+            background-color: #e1f0fa;
+            border-color: #2980b9;
+            transform: scale(1.02);
+        }
+        .drop-zone p {
+            margin: 0 0 10px 0;
+            color: #3498db;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .drop-zone span {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+        #fileInput {
+            display: none;
+        }
+        
+        /* 进度条 */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #2ecc71;
+            width: 0%;
+            transition: width 0.2s;
+        }
+
+        /* 文件列表样式 */
+        h2 {
+            font-size: 18px;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f2f6;
+            transition: background-color 0.2s;
+        }
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .file-name {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+        .file-meta {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .btn-download {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #95a5a6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HJS 极简云盘</h1>
+    
+    <!-- 拖拽上传区域 -->
+    <div class="drop-zone" id="dropZone">
+        <p>将文件拖拽到此处，或点击选择文件</p>
+        <span>支持多文件同时上传，大小不限</span>
+        <input type="file" id="fileInput" multiple>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="progress-bar-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- 文件列表区域 -->
+    <h2>我的文件</h2>
+    <ul class="file-list" id="fileList">
+        <div class="empty-state">正在加载文件...</div>
+    </ul>
+</div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+
+    // 格式化文件大小
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    // 获取并渲染文件列表
+    async function fetchFiles() {
+        try {
+            const response = await fetch('/api/files');
+            const files = await response.json();
+            
+            if (files.length === 0) {
+                fileList.innerHTML = '<div class="empty-state">云盘空空如也，快去上传文件吧！</div>';
+                return;
+            }
+
+            fileList.innerHTML = files.map(file => {
+                const date = new Date(file.time).toLocaleString('zh-CN');
+                return `
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name" title="${file.originalName}">${file.originalName}</span>
+                            <span class="file-meta">${formatBytes(file.size)} · 上传于 ${date}</span>
+                        </div>
+                        <div class="file-actions">
+                            <a href="/api/download/${file.name}" class="btn btn-download" download>下载</a>
+                            <button type="button" onclick="deleteFile('${file.name}')" class="btn btn-delete">删除</button>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        } catch (error) {
+            fileList.innerHTML = '<div class="empty-state" style="color: #e74c3c;">获取文件列表失败</div>';
+        }
+    }
+
+    // 删除文件
+    async function deleteFile(filename) {
+        console.log(`[Frontend] User clicked delete for file: ${filename}`);
+        
+        // 适配特殊环境下的 confirm 返回 Promise 的问题
+        let isConfirmed;
+        const confirmResult = confirm('确定要删除这个文件吗？');
+        
+        if (confirmResult instanceof Promise) {
+            isConfirmed = await confirmResult;
+        } else {
+            isConfirmed = confirmResult;
+        }
+        
+        console.log(`[Frontend] User confirmation result: ${isConfirmed}`);
+        
+        if (!isConfirmed) {
+            console.log(`[Frontend] Deletion cancelled by user. Returning.`);
+            return; // 如果用户点击取消，直接退出函数，不再向下执行
+        }
+        
+        console.log(`[Frontend] Proceeding with fetch request to delete: ${filename}`);
+        try {
+            const response = await fetch(`/api/files/${filename}`, { method: 'DELETE' });
+            console.log(`[Frontend] Server response status: ${response.status}`);
+            
+            if (response.ok) {
+                console.log(`[Frontend] Delete successful, refreshing file list.`);
+                fetchFiles();
+            } else {
+                console.error(`[Frontend] Delete failed with status: ${response.status}`);
+                alert('删除失败');
+            }
+        } catch (error) {
+            console.error(`[Frontend] Network error during deletion:`, error);
+            alert('网络错误，删除失败');
+        }
+    }
+
+    // 上传文件逻辑
+    function uploadFiles(files) {
+        if (files.length === 0) return;
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload', true);
+
+        // 监听上传进度
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    fetchFiles(); // 上传成功后刷新列表
+                }, 500);
+            } else {
+                alert('上传失败');
+                progressContainer.style.display = 'none';
+            }
+        };
+
+        xhr.onerror = function() {
+            alert('上传发生网络错误');
+            progressContainer.style.display = 'none';
+        };
+
+        xhr.send(formData);
+    }
+
+    // 绑定点击上传事件
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        uploadFiles(e.target.files);
+        fileInput.value = ''; // 清空 input 允许重复选择同一个文件
+    });
+
+    // 绑定拖拽上传事件
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        uploadFiles(files);
+    });
+
+    // 初始加载文件列表
+    fetchFiles();
+</script>
+
+</body>
+</html>
