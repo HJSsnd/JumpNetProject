@@ -14,7 +14,7 @@
     "axios": "^1.15.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "sqlite3": "^6.0.1",
+    "sqlite3": "^5.1.6",
     "ua-parser-js": "^2.0.9",
     "useragent": "^2.3.0"
   }
