@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  jump-net:
+    build: .
+    container_name: jump-net
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      # 将宿主机的数据库文件挂载到容器内部，保证数据不丢失
+      # 注意：必须确保宿主机上已存在该文件，否则 Docker 会把它当成目录创建
+      - ./database.sqlite:/app/database.sqlite
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
+
+  cloud-disk:
+    build: ./CloudDiskApp
+    container_name: cloud-disk
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      # 将宿主机的上传目录挂载到容器内部，保证文件存到硬盘上
+      - ./CloudDiskApp/uploads:/app/uploads
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
