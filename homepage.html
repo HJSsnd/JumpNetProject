@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HJS 的极客主页</title>
+    <style>
+        :root {
+            --primary-color: #f1c40f; /* 调整为主色调黄色，配合背景 */
+            --accent-color: #f39c12;
+            --bg-color: #1a1a1a;
+            --card-bg: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+            --text-color: #ecf0f1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=A%20grunge%20style%20yellow%20smiley%20face%20with%20XX%20eyes%20painted%20on%20a%20dark%20black%20wall%2C%20dripping%20paint%2C%203d%20render&image_size=landscape_16_9");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px 20px;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: #bdc3c7;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px); /* 玻璃态模糊效果 */
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 为不同的项目卡片设置不同的顶边颜色 */
+        .card:nth-child(1) { border-top-color: #e74c3c; }
+        .card:nth-child(2) { border-top-color: #2ecc71; }
+        .card:nth-child(3) { border-top-color: #f39c12; }
+        .card:nth-child(4) { border-top-color: #9b59b6; }
+
+        .card h2 {
+            margin: 0 0 15px 0;
+            color: #ffffff;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: #dcdde1;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            color: #2ecc71;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        .port {
+            font-size: 0.85rem;
+            color: #ecf0f1;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>HJS 的实验室 🚀</h1>
+            <p class="subtitle">部署在阿里云服务器上的个人专属服务集合</p>
+        </header>
+
+        <div class="grid">
+            <!-- 项目一：智能链接分发系统 -->
+            <!-- 将这里的 href 替换为你的实际 IP 和端口 -->
+            <a href="http://47.116.105.214:3000" class="card" target="_blank">
+                <h2>🔗 智能链接生成器</h2>
+                <p>一个轻量级的短链接分发系统。能根据访问者的浏览器类型（Chrome/Safari）自动跳转到不同的目标网址，并记录访客 IP 的地理位置。</p>
+                <div class="card-footer">
+                    <span class="status">运行中</span>
+                    <span class="port">Port: 3000</span>
+                </div>
+            </a>
+
+            <!-- 项目二：极简个人云盘 -->
+            <!-- 将这里的 href 替换为你的实际 IP 和端口 -->
+            <a href="http://47.116.105.214:3001" class="card" target="_blank">
+                <h2>☁️ 私人极简云盘</h2>
+                <p>一个支持拖拽上传、无文件大小限制的极简私人网盘。文件直达服务器硬盘。</p>
+                <div class="card-footer">
+                    <span class="status">运行中</span>
+                    <span class="port">Port: 3001</span>
+                </div>
+            </a>
+
+            <!-- 占位项目：待开发 -->
+            <a href="#" class="card" style="opacity: 0.6; cursor: not-allowed;">
+                <h2>🛠️ 个人博客系统</h2>
+                <p>记录技术心得、生活随笔和学习笔记。基于 Halo 或 Hexo 搭建的轻量级极客风博客。（待部署）</p>
+                <div class="card-footer" style="border-top-color: transparent;">
+                    <span class="status" style="color: #95a5a6;">&nbsp;</span>
+                    <span class="port" style="background-color: transparent;">&nbsp;</span>
+                </div>
+            </a>
+            
+            <!-- 占位项目：待开发 -->
+            <a href="#" class="card" style="opacity: 0.6; cursor: not-allowed;">
+                <h2>🤖 私有 AI 助手</h2>
+                <p>基于开源大模型 API 搭建的私人 ChatGPT 网页端，支持历史对话记录和自定义提示词。（待部署）</p>
+                <div class="card-footer" style="border-top-color: transparent;">
+                    <span class="status" style="color: #95a5a6;">&nbsp;</span>
+                    <span class="port" style="background-color: transparent;">&nbsp;</span>
+                </div>
+            </a>
+        </div>
+
+        <footer>
+            &copy; 2026 HJS. Powered by Nginx & Node.js
+        </footer>
+    </div>
+
+</body>
+</html>
